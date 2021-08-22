@@ -1,0 +1,27 @@
+{
+  "one_time": false,
+  "buttons": [
+    [{
+        "action": {
+          "type": "text",
+          "label": "тру гачи мемы"
+        },
+        "color": "primary"
+      },
+      {
+        "action": {
+          "type": "text",
+          "label": "right versions"
+        },
+        "color": "primary"
+      },
+      {
+        "action": {
+          "type": "text",
+          "label": "GYM"
+        },
+        "color": "negative"
+      }
+    ]
+  ]
+}

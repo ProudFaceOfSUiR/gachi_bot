@@ -1,0 +1,15 @@
+{
+  "buttons": [
+    [
+      {
+        "action": {
+          "type": "open_link",
+          "link": "https://www.youtube.com/watch?v=yCNIZkvUE7E",
+          "label": "тебе сюда",
+          "payload": ""
+        }
+      }
+    ]
+  ],
+  "inline": true
+}
