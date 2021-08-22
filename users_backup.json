@@ -1,6 +1,9 @@
 {
 "users": [
 {"id": 206593708, "role": "fucking slave", "marker": 0, "reputation": 0},
-{"id": 436111332, "role": "fucking slave", "marker": 4, "reputation": -100}
+{"id": 436111332, "role": "fucking slave", "marker": 4, "reputation": -100},
+{"id": 132460094, "role": "noob", "marker": 4, "reputation": -200},
+{"id": 215762369, "role": "fucking slave", "marker": 4, "reputation": -60},
+{"id": 14445552, "role": "fucking slave", "marker": 4, "reputation": 0}
 ]
 }
