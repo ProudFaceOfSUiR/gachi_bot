@@ -1,0 +1,14 @@
+{
+  "users": [{
+    "id": 436111332,
+    "role": "dungeon master",
+    "marker": 4,
+    "reputation": 99
+  },
+  {
+    "id": 206593708,
+    "role": "fucking slave",
+    "marker": 0,
+    "reputation": 0
+  }]
+}
