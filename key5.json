@@ -22,6 +22,14 @@
         },
         "color": "negative"
       }
+    ],[
+      {
+        "action": {
+          "type": "text",
+          "label": "кто я такой?"
+        },
+        "color": "primary"
+      }
     ]
   ]
 }

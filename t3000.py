@@ -1,5 +1,4 @@
 import random
-import requests
 import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.utils import get_random_id
@@ -7,15 +6,58 @@ import urllib.request
 import json
 import urllib
 
+def user_to_json(file):
+    global user_base
+    fh = open(file,"w")
+    fh.write('{'+'\n'+'"users": ['+'\n')
+    i = 0
+    for users in user_base:
+        i+=1
+        txt = {
+            "id": users.id,
+            "role": str(users.role),
+            "marker": users.marker,
+            "reputation":users.reputation
+        }
+        # конвертируем в JSON:
+        fh.write(json.dumps(txt))
+        # в результате получаем строк JSON:
+        if i != len(user_base):
+            fh.write(",\n")
+        else:
+            fh.write("\n")
+    fh.write("]\n}")
+
+
+def new_link(link, file):
+    new = True
+    with open(file, "r") as file1:
+        for line in file1:
+            if link in line:
+                new = False
+    return new
+
+def add_link(link, file):
+    f = open(file, "r")
+    contents = f.readlines()
+    f.close()
+    index = 2
+    value = '\t'+'{"link": "'+link+'"},'+"\n"
+    contents.insert(index, value)
+
+    f = open(file, "w")
+    contents = "".join(contents)
+    f.write(contents)
+    f.close()
 
 def find_link(message):
     print("find link")
     words = message.split(" ")
     new_video = ""
+    link = ""
     for i in words:#https://youtu.be/c9JNp6kdKqU
         print(i)
         try:
-            print(i.find("youtube"))
             if "youtube.com" in i or "youtube.ru" in i:
                 print("ch1")
                 txt = i.split('=')[1]
@@ -28,6 +70,7 @@ def find_link(message):
                     response_text = response.read()
                     data = json.loads(response_text.decode())
                     new_video = data['title']
+                    link = "https://www.youtube.com/watch?v="+txt
             else:
                 print("ch2")
                 txt = i.split('/')[3]
@@ -40,10 +83,11 @@ def find_link(message):
                     response_text = response.read()
                     data = json.loads(response_text.decode())
                     new_video = data['title']
+                    link = "https://www.youtube.com/watch?v=" + txt
             print(new_video)
         except BaseException:
             print("ok")
-    return new_video
+    return [new_video,link]
 
 class User():
     id = ""
@@ -57,8 +101,7 @@ class User():
         raw_txt = txt
         txt = txt.lower()
         print(txt)
-        print(self.id)
-        print(self.marker)
+        print(str(self.id)+" "+str(self.marker)+" "+str(self.role)+" "+str(self.reputation))
         if txt == "начать":
             self.marker = 0
         if self.marker == 0 and txt == "начать":
@@ -115,6 +158,7 @@ class User():
                     vk.messages.send(message="nice to meet you, bro", user_id=event.user_id,
                                      random_id=get_random_id(),
                                      keyboard=open("key3.json", "r", encoding="UTF-8").read())
+                    self.role = "boy next door"
                     self.marker = 3
             elif txt == "dungeon master":
                 if self.reputation < 100:
@@ -131,6 +175,7 @@ class User():
                 else:
                     vk.messages.send(message="nice to meet you, bro", user_id=self.id, random_id=get_random_id(),
                                      keyboard=open("key4.json", "r", encoding="UTF-8").read())
+                    self.role = "dungeon master"
                     self.marker = 3
             else:
                 vk.messages.send(message="no, you have no more choices", user_id=self.id, random_id=get_random_id())
@@ -163,49 +208,90 @@ class User():
                 message = random.choice(parsed_links["items"])['link'],
                 random_id=get_random_id(),keyboard=open("key5.json", "r", encoding="UTF-8").read()
             )
+        elif self.marker == 4 and txt == "кто я такой?":
+            if self.role == "fucking slave":
+                vk.messages.send(
+                    user_id=event.user_id,
+                    message="ты "+str(self.role)+" твоя репутация "+str(self.reputation)+" до boy next door тебе " + str(100-self.reputation),
+                    random_id=get_random_id(), keyboard=open("key5.json", "r", encoding="UTF-8").read()
+                )
+            elif self.role == "boy next door":
+                vk.messages.send(
+                    user_id=event.user_id,
+                    message="ты "+str(self.role)+" твоя репутация "+str(self.reputation)+" до DUNGEON MASTER тебе " + str(300-self.reputation),
+                    random_id=get_random_id(), keyboard=open("key5.json", "r", encoding="UTF-8").read()
+                )
+            if self.role == "dungeon master":
+                vk.messages.send(
+                    user_id=event.user_id,
+                    message="ты "+str(self.role)+" твоя репутация "+str(self.reputation)+" ты, черт возьми, хорош",
+                    random_id=get_random_id(), keyboard=open("key5.json", "r", encoding="UTF-8").read()
+                )
         elif self.marker == 4 and txt == "gym":
             vk.messages.send(
                 user_id=event.user_id,
                 message="ты пришел в качалочку, закачай в меня больше тру гачи видосов, отправь ссылочку на настоящий гачи ремикс и смайлик на удачу ;-)",
-                random_id=get_random_id(), keyboard=open("key5.json", "r", encoding="UTF-8").read()
+                random_id=get_random_id(), keyboard=open("key6.json", "r", encoding="UTF-8").read()
             )
             self.marker = 41
-            print(self.id)
+        elif self.marker == 41 and txt == "выйти из качалочки":
+            vk.messages.send(
+                user_id=event.user_id,
+                message="возвращайся, как захочешь",
+                random_id=get_random_id(), keyboard=open("key5.json", "r", encoding="UTF-8").read()
+            )
+            self.marker = 4
         elif self.marker == 41:
-            print(txt)
             check = find_link(raw_txt)
-            check = check.lower()
-            if check == "":
+            check[0] = check[0].lower()
+            if check[0] == "":
                 vk.messages.send(
                     user_id=event.user_id,
-                    message="это не ссылочка, ты обманул своего Мастера",
-                    random_id=get_random_id(), keyboard=open("key5.json", "r", encoding="UTF-8").read()
+                    message="это не ссылочка на музыку богов, ты обманул своего Мастера",
+                    random_id=get_random_id(), keyboard=open("key6.json", "r", encoding="UTF-8").read()
                 )
                 self.reputation -= 50
-                self.marker = 4
-            elif "gachi" in check or "гачи" in check or "right version" in check:
-                vk.messages.send(
-                    user_id=event.user_id,
-                    message="неплохо, "+str(self.role),
-                    random_id=get_random_id(), keyboard=open("key5.json", "r", encoding="UTF-8").read()
-                )
-                self.reputation+=40
-                self.marker = 4
+                self.marker = 41
+            elif "gachi" in check[0] or "гачи" in check or "right version" in check[0]:
+                if new_link(check[1],"videos.json"):
+                    vk.messages.send(
+                        user_id=event.user_id,
+                        message="неплохо, "+str(self.role),
+                        random_id=get_random_id(), keyboard=open("key6.json", "r", encoding="UTF-8").read()
+                    )
+                    self.reputation+=40
+                    self.marker = 41
+                    add_link(check[1],"videos.json")
+                else:
+                    vk.messages.send(
+                        user_id=event.user_id,
+                        message="ты хорош, но кто-то скинул эту ссылку раньше, поищи получше " + str(self.role),
+                        random_id=get_random_id(), keyboard=open("key6.json", "r", encoding="UTF-8").read()
+                    )
+                    self.marker = 41
             else:
                 vk.messages.send(
                     user_id=event.user_id,
                     message="как-то не похоже на тру версию",
-                    random_id=get_random_id(), keyboard=open("key5.json", "r", encoding="UTF-8").read()
+                    random_id=get_random_id(), keyboard=open("key6.json", "r", encoding="UTF-8").read()
                 )
-                self.role = 4
+                self.role = 41
         elif self.marker == 42:
             vk.messages.send(
                 user_id=event.user_id,
                 message="кажется, ты что-то не дописал",
-                random_id=get_random_id(), keyboard=open("key5.json", "r", encoding="UTF-8").read()
+                random_id=get_random_id(), keyboard=open("key6.json", "r", encoding="UTF-8").read()
             )
             self.reputation -=50
-            self.marker = 4
+            self.marker = 41
+
+        elif self.id == 436111332 and txt == "save":
+            user_to_json("users_backup.json")
+            vk.messages.send(
+                user_id=event.user_id,
+                message="усе сох",
+                random_id=get_random_id(), keyboard=open("key5.json", "r", encoding="UTF-8").read()
+            )
         elif self.marker == 4:
             vk.messages.send(
                 user_id=event.user_id,
@@ -214,13 +300,16 @@ class User():
             )
 
 
+
+
+
 vk_session = vk_api.VkApi(token='ddb5080ac5e999ff2bb1e3b466d0e58c4f36df8fcf0b081267c4d433500162660200ea980b97efc8c1a4c')
 longpoll = VkLongPoll(vk_session)
 vk = vk_session.get_api()
 
 user_base = []
 
-with open('users.json') as json_file:
+with open('users_backup.json') as json_file:
     data = json.load(json_file)
     i = 0
     for p in data['users']:
@@ -230,21 +319,15 @@ with open('users.json') as json_file:
         user_base[i].reputation = p['reputation']
         i+=1
 
-print(user_base[0].id)
-print(user_base[0].marker)
-
 while True:
     for event in longpoll.listen():
         print(event.type)
         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
             print(len(user_base))
-            print(user_base)
             new = True
             for i in range(len(user_base)):
-                print(len(user_base))
                 if user_base[i].id == event.user_id:
                     new = False
-                    print("ans1")
                     if event.text:
                         user_base[i].answer(event.text)
                     else:
